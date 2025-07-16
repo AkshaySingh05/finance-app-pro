@@ -206,25 +206,25 @@ def main():
         if not df.empty:
             st.dataframe(df)
 
-        # Debt Simulator Tab
     elif menu == "📆 Debt Simulator":
         st.subheader("📆 Debt Payoff Simulator")
-    
         df_debts = get_debts()
     
         if df_debts.empty:
-            st.warning("Please add debt entries first in the '💰 Manage Debts' section.")
+            st.info("No debts found. Please add debt entries first in the Budgets tab.")
         else:
-            method = st.selectbox("Select payoff method", ["Snowball", "Avalanche"])
-    
-            st.info(f"Using {method} strategy to simulate debt payoff...")
-    
-            payoff_df = debt_payoff_simulator(df_debts, method.lower())
-    
-            if payoff_df.empty:
-                st.error("Could not calculate payoff — ensure debts have balance, interest rate, and minimum payment.")
-            else:
-                st.dataframe(payoff_df)
+            with st.form("debt_sim_form"):
+                method = st.selectbox("Payoff Method", ["Snowball", "Avalanche"])
+                submit_sim = st.form_submit_button("Run Simulation")
+            
+            if submit_sim:
+                payoff_df = debt_payoff_simulator(df_debts, method.lower())
+                if not payoff_df.empty:
+                    st.write("📊 Payoff Timeline:")
+                    st.dataframe(payoff_df)
+                else:
+                    st.warning("Simulation failed or returned no data.")
+
 
 
     elif menu == "💰 Budgets":
