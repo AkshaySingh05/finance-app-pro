@@ -200,45 +200,6 @@ def main():
                     st.warning("⚠️ Transaction deleted.")
                     st.stop()  # Stop execution safely after deleting
 
-
-                # View, Edit, or Delete Transactions
-                st.markdown("---")
-                st.subheader("📋 Recent Transactions")
-                df_txns = get_transactions()
-                if df_txns.empty:
-                    st.info("No transactions available.")
-                else:
-                    df_txns['date'] = pd.to_datetime(df_txns['date']).dt.date
-                    st.dataframe(df_txns)
-            
-                    selected_id = st.selectbox("Select Transaction ID to Edit/Delete", df_txns['id'].tolist())
-                    selected_row = df_txns[df_txns['id'] == selected_id].iloc[0]
-            
-                    action = st.radio("Action", ["Edit", "Delete"])
-            
-                    if action == "Edit":
-                        st.markdown("### Edit Transaction")
-                        
-                        new_date = st.date_input("Date", selected_row['date'])
-                        new_type = st.selectbox("Type", ["Income", "Expense", "Debt Payment"],
-                                                index=["Income", "Expense", "Debt Payment"].index(selected_row['type']))
-                        
-                        category_list = get_categories()
-                        category_index = category_list.index(selected_row['category']) if selected_row['category'] in category_list else 0
-                        new_category = st.selectbox("Category", category_list, index=category_index)
-                        
-                        new_amount = st.number_input("Amount", value=float(selected_row['amount']), step=0.01)
-                        new_note = st.text_input("Note", value=selected_row['note'])
-                        
-                        if st.button("Update Transaction"):
-                            update_transaction(selected_id, new_date, new_type, new_category, new_amount, new_note)
-                            st.success("Transaction updated.")
-                        
-                        if st.button("Delete Transaction"):
-                            delete_transaction(selected_id)
-                            st.warning("Transaction deleted.")
-
-            
     elif menu == "🏋️ KPIs & Dashboard":
         df = get_transactions()
         df['date'] = pd.to_datetime(df['date'])
