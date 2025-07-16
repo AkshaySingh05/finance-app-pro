@@ -80,6 +80,12 @@ def get_debts():
     conn.close()
     return df
 
+def delete_transaction(txn_id):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("DELETE FROM Transactions WHERE id = ?", (txn_id,))
+    conn.commit()
+    conn.close()
+
 def add_debt(creditor, balance, rate, due, min_pay, credit_limit):
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
