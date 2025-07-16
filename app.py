@@ -1,3 +1,5 @@
+# finance_app_pro/app.py
+
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -11,148 +13,208 @@ DB_PATH = "personal_finance.db"
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Transactions (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT,
-        type TEXT,
-        category TEXT,
-        amount REAL,
-        note TEXT
-    )''')
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Budgets (
+        date TEXT, type TEXT, category TEXT,
+        amount REAL, note TEXT)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Budgets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category TEXT,
-        month TEXT,
-        budget_amount REAL
-    )''')
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Debts (
+        category TEXT, month TEXT, budget_amount REAL)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Debts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        creditor TEXT,
-        balance REAL,
-        interest_rate REAL,
-        due_date TEXT,
-        min_payment REAL,
-        credit_limit REAL,
-        initial_balance REAL
-    )''')
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Goals (
+        creditor TEXT, balance REAL, interest_rate REAL,
+        due_date TEXT, min_payment REAL, credit_limit REAL, initial_balance REAL)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Goals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        description TEXT,
-        target_amount REAL,
-        current_amount REAL,
-        deadline TEXT
-    )''')
+        description TEXT, target_amount REAL, current_amount REAL, deadline TEXT)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT, type TEXT)''')
     conn.commit()
     conn.close()
 
-def load_data():
+# Data functions (get, add)
+def get_categories(type_filter=None):
     conn = sqlite3.connect(DB_PATH)
-    df_tx = pd.read_sql("SELECT * FROM Transactions", conn)
-    df_tx["date"] = pd.to_datetime(df_tx["date"])
-    df_debts = pd.read_sql("SELECT * FROM Debts", conn)
-    df_budgets = pd.read_sql("SELECT * FROM Budgets", conn)
-    df_goals = pd.read_sql("SELECT * FROM Goals", conn)
+    query = "SELECT name FROM Categories"
+    if type_filter:
+        query += f" WHERE type='{type_filter}'"
+    df = pd.read_sql(query, conn)
     conn.close()
-    return df_tx, df_debts, df_budgets, df_goals
+    return df['name'].tolist()
+
+def add_category(name, type_):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("INSERT INTO Categories (name, type) VALUES (?, ?)", (name, type_))
+    conn.commit()
+    conn.close()
 
 def add_transaction(date, type_, category, amount, note):
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO Transactions (date, type, category, amount, note) VALUES (?, ?, ?, ?, ?)",
-                   (date, type_, category, amount, note))
+    conn.execute('''INSERT INTO Transactions (date, type, category, amount, note)
+                    VALUES (?, ?, ?, ?, ?)''', (date, type_, category, amount, note))
     conn.commit()
     conn.close()
 
-def kpi_metrics(df_tx, df_debts):
-    income = df_tx[df_tx["type"] == "Income"]["amount"].sum()
-    expenses = df_tx[df_tx["type"] == "Expense"]["amount"].sum()
-    savings = income - expenses
-    debt_payments = df_tx[df_tx["type"] == "Debt Payment"]["amount"].sum()
+def get_transactions():
+    conn = sqlite3.connect(DB_PATH)
+    df = pd.read_sql("SELECT * FROM Transactions ORDER BY date DESC", conn)
+    conn.close()
+    return df
 
-    savings_rate = (savings / income) * 100 if income > 0 else 0
-    expense_ratio = (expenses / income) * 100 if income > 0 else 0
-    net_cash_flow = savings - debt_payments
+def get_debts():
+    conn = sqlite3.connect(DB_PATH)
+    df = pd.read_sql("SELECT * FROM Debts", conn)
+    conn.close()
+    return df
 
-    # Credit Utilization & Debt Reduction
-    if not df_debts.empty:
-        df_debts["credit_util"] = df_debts.apply(
-            lambda x: (x["balance"] / x["credit_limit"]) * 100 if x["credit_limit"] > 0 else 0, axis=1
-        )
-        df_debts["debt_reduction"] = df_debts.apply(
-            lambda x: ((x["initial_balance"] - x["balance"]) / x["initial_balance"]) * 100 if x["initial_balance"] > 0 else 0, axis=1
-        )
-        avg_util = df_debts["credit_util"].mean()
-        avg_reduction = df_debts["debt_reduction"].mean()
-    else:
-        avg_util = 0
-        avg_reduction = 0
+def add_debt(creditor, balance, rate, due, min_pay, credit_limit):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        INSERT INTO Debts (creditor, balance, interest_rate, due_date, min_payment, credit_limit, initial_balance)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (creditor, balance, rate, due, min_pay, credit_limit, balance))
+    conn.commit()
+    conn.close()
 
-    # Emergency Fund (Monthly Expenses)
-    emg = df_tx[(df_tx["type"] == "Income") & (df_tx["category"] == "Emergency Fund")]["amount"].sum()
-    monthly_exp = df_tx[df_tx["type"] == "Expense"].groupby(df_tx["date"].dt.to_period("M"))["amount"].sum().mean()
-    emergency_months = emg / monthly_exp if monthly_exp > 0 else 0
+def add_goal(description, target, current, deadline):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        INSERT INTO Goals (description, target_amount, current_amount, deadline)
+        VALUES (?, ?, ?, ?)
+    """, (description, target, current, deadline))
+    conn.commit()
+    conn.close()
 
-    return {
-        "Savings Rate (%)": savings_rate,
-        "Expense Ratio (%)": expense_ratio,
-        "Net Cash Flow": net_cash_flow,
-        "Avg Credit Utilization (%)": avg_util,
-        "Avg Debt Reduction (%)": avg_reduction,
-        "Emergency Fund Coverage (months)": emergency_months
-    }
+def add_budget(category, month, amount):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("INSERT INTO Budgets (category, month, budget_amount) VALUES (?, ?, ?)",
+                 (category, month, amount))
+    conn.commit()
+    conn.close()
 
 def main():
-    st.set_page_config("Finance App Pro", layout="wide")
+    st.set_page_config("Finance App – Pro Edition", layout="wide")
     init_db()
-    df_tx, df_debts, df_budgets, df_goals = load_data()
 
-    st.title("💼 Finance App – Pro Edition")
+    menu = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
+                                           "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
-    tabs = st.tabs(["➕ Add Transaction", "📊 KPIs & Dashboard", "📈 Forecasting", "🎯 Goals", "💳 Debt Simulator", "💰 Budgets"])
+    if menu == "Add Transaction":
+        st.subheader("Add New Transaction")
+        with st.form("txn_form"):
+            date = st.date_input("Date")
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
+            category = st.selectbox("Category", get_categories())
+            amount = st.number_input("Amount", step=0.01)
+            note = st.text_input("Note")
+            if st.form_submit_button("Submit"):
+                add_transaction(str(date), type_, category, amount, note)
+                st.success("Transaction added successfully!")
 
-    with tabs[0]:
-        st.header("➕ Add New Transaction")
-        with st.form("tx_form", clear_on_submit=True):
-            col1, col2, col3 = st.columns(3)
-            date = col1.date_input("Date", datetime.today())
-            type_ = col2.selectbox("Type", ["Income", "Expense", "Debt Payment"])
-            category = col3.text_input("Category")
-            amount = st.number_input("Amount", min_value=0.0)
-            note = st.text_input("Note (optional)")
-            submitted = st.form_submit_button("Add Transaction")
-            if submitted:
-                add_transaction(date.strftime("%Y-%m-%d"), type_, category, amount, note)
-                st.success("Transaction added.")
+    elif menu == "🏋️ KPIs & Dashboard":
+        df = get_transactions()
+        df['date'] = pd.to_datetime(df['date'])
+        debts = get_debts()
+        income = df[df['type'] == 'Income']['amount'].sum()
+        expenses = df[df['type'] == 'Expense']['amount'].sum()
+        debt_payments = df[df['type'] == 'Debt Payment']['amount'].sum()
+        savings = income + expenses + debt_payments
+        savings_rate = (savings / income * 100) if income > 0 else 0
+        expense_ratio = (-expenses / income * 100) if income > 0 else 0
 
-    with tabs[1]:
-        st.header("📊 Key Financial Indicators")
-        kpis = kpi_metrics(df_tx, df_debts)
-        for i, (k, v) in enumerate(kpis.items()):
-            st.metric(label=k, value=f"{v:,.2f}" if "Cash" in k else f"{v:.1f}%")
+        if not debts.empty:
+            debts['credit_util'] = debts['balance'] / debts['credit_limit'] * 100
+            debts['debt_reduction'] = (debts['initial_balance'] - debts['balance']) / debts['initial_balance'] * 100
+        credit_util = debts['credit_util'].mean() if not debts.empty else 0
+        debt_reduction = debts['debt_reduction'].mean() if not debts.empty else 0
+        emergency = df[df['category'] == 'Emergency Fund']['amount'].sum()
+        months_exp = -expenses / len(df['date'].dt.to_period("M").unique()) if expenses < 0 else 0
+        emergency_months = emergency / months_exp if months_exp > 0 else 0
 
-    with tabs[2]:
-        st.header("📈 Forecasting Trends")
-        df = df_tx[df_tx["type"] == "Expense"].copy()
-        if not df.empty:
-            df = df.groupby(df["date"].dt.to_period("M")).sum().reset_index()
-            df["month_index"] = range(len(df))
-            model = LinearRegression()
-            model.fit(df[["month_index"]], df["amount"])
-            future = pd.DataFrame({"month_index": range(len(df), len(df)+6)})
-            forecast = model.predict(future)
+        st.subheader("📊 Key Financial Indicators")
+        st.metric("Savings Rate (%)", f"{savings_rate:.1f}%")
+        st.metric("Expense Ratio (%)", f"{expense_ratio:.1f}%")
+        st.metric("Net Cash Flow", f"{income + expenses + debt_payments:.2f}")
+        st.metric("Avg Credit Utilization (%)", f"{credit_util:.1f}%")
+        st.metric("Avg Debt Reduction (%)", f"{debt_reduction:.1f}%")
+        st.metric("Emergency Fund Coverage (months)", f"{emergency_months:.1f}%")
 
-            plt.figure(figsize=(8, 3))
-            plt.plot(df["month_index"], df["amount"], label="Actual")
-            plt.plot(future["month_index"], forecast, linestyle="--", label="Forecast")
-            plt.title("6-Month Expense Forecast")
+    elif menu == "📈 Forecasting":
+        st.subheader("Expense Forecast")
+        df = get_transactions()
+        df['date'] = pd.to_datetime(df['date'])
+        df = df[df['type'] == 'Expense']
+        df = df.groupby(df['date'].dt.to_period("M")).sum().reset_index()
+        df['date'] = df['date'].astype(str)
+        df['month_index'] = range(len(df))
+        if len(df) >= 2:
+            X = df[['month_index']]
+            y = df['amount']
+            model = LinearRegression().fit(X, y)
+            future_idx = np.array([[len(df)+i] for i in range(6)])
+            preds = model.predict(future_idx)
+            plt.plot(df['date'], y, marker='o', label='Actual')
+            plt.plot([f"+{i}" for i in range(1,7)], preds, linestyle='--', label='Forecast')
             plt.legend()
             st.pyplot(plt)
         else:
-            st.info("No data available for forecasting.")
+            st.warning("Not enough data to forecast. Add at least 2 months of expenses.")
 
-if __name__ == "__main__":
+    elif menu == "🌟 Goals":
+        st.subheader("Set Financial Goals")
+        with st.form("goal_form"):
+            desc = st.text_input("Goal Description")
+            target = st.number_input("Target Amount", step=100.0)
+            current = st.number_input("Current Amount", step=100.0)
+            deadline = st.date_input("Deadline")
+            if st.form_submit_button("Add Goal"):
+                add_goal(desc, target, current, str(deadline))
+                st.success("Goal added.")
+        df = pd.read_sql("SELECT * FROM Goals", sqlite3.connect(DB_PATH))
+        if not df.empty:
+            st.dataframe(df)
+
+    elif menu == "📆 Debt Simulator":
+        st.subheader("Add Debt Account")
+        with st.form("debt_form"):
+            creditor = st.text_input("Creditor")
+            balance = st.number_input("Balance", step=100.0)
+            rate = st.number_input("Interest Rate (%)", step=0.5)
+            due = st.date_input("Due Date")
+            min_pay = st.number_input("Min Payment", step=100.0)
+            limit = st.number_input("Credit Limit", step=100.0)
+            if st.form_submit_button("Add Debt"):
+                add_debt(creditor, balance, rate, str(due), min_pay, limit)
+                st.success("Debt account added.")
+        df = get_debts()
+        if not df.empty:
+            st.dataframe(df)
+
+    elif menu == "💰 Budgets":
+        st.subheader("Monthly Budgets")
+        with st.form("budget_form"):
+            cat = st.selectbox("Category", get_categories("Expense"))
+            month = st.text_input("Month (YYYY-MM)")
+            amount = st.number_input("Budget Amount", step=100.0)
+            if st.form_submit_button("Set Budget"):
+                add_budget(cat, month, amount)
+                st.success("Budget set.")
+        df = pd.read_sql("SELECT * FROM Budgets", sqlite3.connect(DB_PATH))
+        if not df.empty:
+            st.dataframe(df)
+
+    elif menu == "🌐 Manage Categories":
+        st.subheader("Manage Categories")
+        with st.form("cat_form"):
+            name = st.text_input("Category Name")
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
+            if st.form_submit_button("Add Category"):
+                add_category(name, type_)
+                st.success("Category added.")
+        df = pd.read_sql("SELECT * FROM Categories", sqlite3.connect(DB_PATH))
+        if not df.empty:
+            st.dataframe(df)
+
+if __name__ == '__main__':
     main()
