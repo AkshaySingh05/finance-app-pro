@@ -175,21 +175,23 @@ def main():
         if not df.empty:
             st.dataframe(df)
 
-    elif menu == "📆 Debt Simulator":
-        st.subheader("Add Debt Account")
-        with st.form("debt_form"):
-            creditor = st.text_input("Creditor")
-            balance = st.number_input("Balance", step=100.0)
-            rate = st.number_input("Interest Rate (%)", step=0.5)
-            due = st.date_input("Due Date")
-            min_pay = st.number_input("Min Payment", step=100.0)
-            limit = st.number_input("Credit Limit", step=100.0)
-            if st.form_submit_button("Add Debt"):
-                add_debt(creditor, balance, rate, str(due), min_pay, limit)
-                st.success("Debt account added.")
-        df = get_debts()
-        if not df.empty:
-            st.dataframe(df)
+        # Debt Simulator Tab
+    elif selection == "Debt Simulator":
+        st.header("🧮 Debt Payoff Simulator")
+    
+        debts = get_debts()
+        if debts.empty:
+            st.info("No debts found. Please add your debts under the 'Manage Debts' tab.")
+        else:
+            method = st.selectbox("Select Payoff Strategy", ["Snowball", "Avalanche"])
+            if st.button("Run Simulation"):
+                sim_df = debt_payoff_simulator(debts, method.lower())
+                if not sim_df.empty:
+                    st.subheader(f"📉 Estimated Months to Payoff - {method} Strategy")
+                    st.dataframe(sim_df)
+                else:
+                    st.warning("Could not simulate debt payoff. Please check your entries.")
+
 
     elif menu == "💰 Budgets":
         st.subheader("Monthly Budgets")
