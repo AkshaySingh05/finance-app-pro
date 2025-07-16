@@ -43,7 +43,12 @@ def get_categories(type_filter=None):
         params = (type_filter.lower().strip(),)
     df = pd.read_sql(query, conn, params=params)
     conn.close()
+
+    # Debug output
+    if df.empty:
+        print(f"[DEBUG] No categories found for type: '{type_filter}'")
     return df['name'].tolist()
+
 
 
 def add_category(name, type_):
@@ -168,12 +173,7 @@ def main():
             date = st.date_input("Date")
             type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
             
-            # Fix the filtering to match database structure
-            if type_ == "Debt":
-                cat_type = "Debt"
-            else:
-                cat_type = type_
-            
+            cat_type = type_.strip().lower()
             filtered_categories = get_categories(type_filter=cat_type)
 
             if not filtered_categories:
