@@ -174,6 +174,16 @@ def main():
             
             amount = st.number_input("Amount", step=0.01)
             note = st.text_input("Note")
+
+            submitted = st.form_submit_button("Submit")
+        
+            if submitted:
+                if category:
+                    add_transaction(str(date), type_, category, amount, note)
+                    st.success("Transaction added successfully!")
+                else:
+                    st.error("Please select a valid category.")
+
             
             if st.form_submit_button("Submit"):
                 if category:
