@@ -93,6 +93,36 @@ def add_budget(category, month, amount):
     conn.commit()
     conn.close()
 
+def debt_payoff_simulator(debts, method='snowball'):
+    if debts.empty:
+        return pd.DataFrame()
+
+    # Sort debts: snowball (lowest balance first), avalanche (highest interest rate first)
+    if method == 'snowball':
+        debts = debts.sort_values('balance')
+    else:
+        debts = debts.sort_values('interest_rate', ascending=False)
+
+    results = []
+    for _, row in debts.iterrows():
+        balance = row['balance']
+        rate = row['interest_rate'] / 100 / 12  # Monthly interest rate
+        payment = row['min_payment']
+        months = 0
+
+        if payment <= balance * rate:
+            results.append({"Creditor": row['creditor'], "Months to Payoff": "∞ (Insufficient Payment)"})
+            continue
+
+        while balance > 0:
+            interest = balance * rate
+            balance = max(0, balance + interest - payment)
+            months += 1
+
+        results.append({"Creditor": row['creditor'], "Months to Payoff": months})
+
+    return pd.DataFrame(results)
+
 def main():
     st.set_page_config("Finance App – Pro Edition", layout="wide")
     init_db()
