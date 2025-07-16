@@ -212,20 +212,21 @@ def main():
                 # --- 1. Debt Entry Form ---
                 st.markdown("### ➕ Add a New Debt")
                 with st.form("add_debt_form"):
-                    creditor = st.text_input("Creditor Name")
                     credit_limit = st.number_input("Credit Limit", min_value=0.0, step=0.01)
                     available_credit = st.number_input("Available Credit", min_value=0.0, step=0.01)
                     balance = credit_limit - available_credit
+                
+                    creditor = st.text_input("Creditor Name")
                     interest_rate = st.number_input("Interest Rate (%)", min_value=0.0, step=0.01)
                     min_payment = st.number_input("Minimum Monthly Payment", min_value=0.0, step=0.01)
-                    credit_limit = st.number_input("Credit Limit", min_value=0.0, step=0.01)
                     due_date = st.date_input("Due Date (optional)")
-            
+                
                     submitted = st.form_submit_button("Save Debt")
-            
+                
                     if submitted:
                         add_debt(creditor, balance, interest_rate, str(due_date), min_payment, credit_limit)
                         st.success(f"✅ Debt for **{creditor}** saved successfully.")
+
             
                 # --- 2. View Existing Debts ---
                 df_debts = get_debts()
