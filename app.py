@@ -218,25 +218,6 @@ def main():
                             new_amount = st.number_input("Amount", value=float(selected_row['amount']), step=0.01)
                             new_note = st.text_input("Note", value=selected_row['note'])
             
-                            if st.form_submit_button("Update Transaction"):
-                                conn = sqlite3.connect(DB_PATH)
-                                conn.execute('''UPDATE Transactions SET date=?, type=?, category=?, amount=?, note=? WHERE id=?''',
-                                             (str(new_date), new_type, new_category, new_amount, new_note, selected_id))
-                                conn.commit()
-                                conn.close()
-                                st.success("Transaction updated successfully.")
-                                st.experimental_rerun()
-            
-                    elif action == "Delete":
-                        if st.button("Delete Transaction"):
-                            conn = sqlite3.connect(DB_PATH)
-                            conn.execute("DELETE FROM Transactions WHERE id = ?", (selected_id,))
-                            conn.commit()
-                            conn.close()
-                            st.warning("Transaction deleted.")
-                            st.experimental_rerun()
-
-
     elif menu == "🏋️ KPIs & Dashboard":
         df = get_transactions()
         df['date'] = pd.to_datetime(df['date'])
