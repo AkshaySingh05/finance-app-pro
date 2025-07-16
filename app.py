@@ -142,8 +142,8 @@ def main():
     menu = st.sidebar.radio("Navigation", ["➕ Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
                                        "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
-    if menu == "➕ Add Transaction":
-        st.subheader("Add New Transaction")
+    if menu == "Add Transaction":
+        st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
             type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
@@ -153,6 +153,42 @@ def main():
             if st.form_submit_button("Submit"):
                 add_transaction(str(date), type_, category, amount, note)
                 st.success("Transaction added successfully!")
+                st.experimental_rerun()
+    
+        # 🔍 View and Manage Transactions
+        st.markdown("---")
+        st.subheader("📝 Edit or Delete Existing Transactions")
+    
+        df_transactions = get_all_transactions()
+        if df_transactions.empty:
+            st.info("No transactions found.")
+        else:
+            selected_txn = st.selectbox(
+                "Select a transaction to edit or delete",
+                df_transactions['id'].astype(str) + " | " + df_transactions['note']
+            )
+    
+            txn_id = int(selected_txn.split(" | ")[0])
+            txn_row = df_transactions[df_transactions['id'] == txn_id].iloc[0]
+    
+            with st.form("edit_transaction_form"):
+                new_date = st.date_input("Edit Date", value=pd.to_datetime(txn_row['date']))
+                new_type = st.selectbox("Edit Type", ["Income", "Expense", "Debt Payment"], index=["Income", "Expense", "Debt Payment"].index(txn_row['type']))
+                new_category = st.selectbox("Edit Category", get_categories(), index=get_categories().index(txn_row['category']))
+                new_amount = st.number_input("Edit Amount", value=txn_row['amount'], step=0.01)
+                new_note = st.text_input("Edit Note", value=txn_row['note'])
+    
+                col1, col2 = st.columns(2)
+                if col1.form_submit_button("Update"):
+                    update_transaction(txn_id, new_date, new_type, new_category, new_amount, new_note)
+                    st.success("✅ Transaction updated.")
+                    st.experimental_rerun()
+    
+                if col2.form_submit_button("Delete"):
+                    delete_transaction(txn_id)
+                    st.warning("⚠️ Transaction deleted.")
+                    st.experimental_rerun()
+
                 # View, Edit, or Delete Transactions
                 st.markdown("---")
                 st.subheader("📋 Recent Transactions")
