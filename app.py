@@ -53,8 +53,20 @@ def add_transaction(date, type_, category, amount, note):
     conn = sqlite3.connect(DB_PATH)
     conn.execute('''INSERT INTO Transactions (date, type, category, amount, note)
                     VALUES (?, ?, ?, ?, ?)''', (date, type_, category, amount, note))
+    
+    # Update debt balance if this is a debt payment
+    if type_ == "Debt Payment":
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, balance FROM Debts WHERE creditor = ?", (category,))
+        result = cursor.fetchone()
+        if result:
+            debt_id, current_balance = result
+            new_balance = max(current_balance - amount, 0)
+            cursor.execute("UPDATE Debts SET balance = ? WHERE id = ?", (new_balance, debt_id))
+    
     conn.commit()
     conn.close()
+
 
 def get_transactions():
     conn = sqlite3.connect(DB_PATH)
