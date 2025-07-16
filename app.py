@@ -193,7 +193,8 @@ def main():
                 if col2.form_submit_button("Delete"):
                     delete_transaction(txn_id)
                     st.warning("⚠️ Transaction deleted.")
-                    st.experimental_rerun()
+                    st.stop()  # Stop execution safely after deleting
+
 
                 # View, Edit, or Delete Transactions
                 st.markdown("---")
