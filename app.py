@@ -169,10 +169,16 @@ def main():
         if df_transactions.empty:
             st.info("No transactions found.")
         else:
+            df_transactions['label'] = df_transactions.apply(
+                lambda row: f"{row['id']} | {row['date']} | {row['type']} | R{row['amount']:.2f} | {row['note'] or row['category']}",
+                axis=1
+            )
+            
             selected_txn = st.selectbox(
                 "Select a transaction to edit or delete",
-                df_transactions['id'].astype(str) + " | " + df_transactions['note']
+                df_transactions['label'].tolist()
             )
+            txn_id = int(selected_txn.split(" | ")[0])
     
             txn_id = int(selected_txn.split(" | ")[0])
             txn_row = df_transactions[df_transactions['id'] == txn_id].iloc[0]
