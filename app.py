@@ -159,7 +159,7 @@ def main():
         st.markdown("---")
         st.subheader("📝 Edit or Delete Existing Transactions")
     
-        df_transactions = get_all_transactions()
+        df_transactions = get_transactions()
         if df_transactions.empty:
             st.info("No transactions found.")
         else:
