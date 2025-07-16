@@ -36,12 +36,15 @@ def init_db():
 # Data functions (get, add)
 def get_categories(type_filter=None):
     conn = sqlite3.connect(DB_PATH)
+    query = "SELECT name FROM Categories"
+    params = ()
     if type_filter:
-        df = pd.read_sql("SELECT name FROM Categories WHERE type = ?", conn, params=(type_filter,))
-    else:
-        df = pd.read_sql("SELECT name FROM Categories", conn)
+        query += " WHERE LOWER(TRIM(type)) = ?"
+        params = (type_filter.lower().strip(),)
+    df = pd.read_sql(query, conn, params=params)
     conn.close()
     return df['name'].tolist()
+
 
 def add_category(name, type_):
     conn = sqlite3.connect(DB_PATH)
@@ -163,7 +166,16 @@ def main():
         st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
-            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
+            
+            # Fix the filtering to match database structure
+            if type_ == "Debt Payment":
+                cat_type = "Debt"
+            else:
+                cat_type = type_
+            
+            filtered_categories = get_categories(type_filter=cat_type)
+
             
             # Filter categories by selected type
             filtered_categories = get_categories(type_filter=type_)
