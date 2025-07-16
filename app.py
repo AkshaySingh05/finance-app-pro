@@ -1,3 +1,5 @@
+pip install --upgrade streamlit
+
 # finance_app_pro/app.py
 
 import streamlit as st
