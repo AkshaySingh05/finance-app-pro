@@ -233,8 +233,46 @@ def main():
                 if df_debts.empty:
                     st.warning("⚠ No debts found. Please add at least one entry to simulate payoff.")
                 else:
-                    st.markdown("### 📄 Current Debts")
-                    st.dataframe(df_debts)
+                    st.markdown("### 🧾 Manage Debts")
+                    
+                    # Show editable table using st.expander
+                    with st.expander("📝 Edit or Delete Existing Debts"):
+                        debt_ids = df_debts['id'].tolist()
+                        selected_debt = st.selectbox("Select a Debt to Edit/Delete", options=debt_ids, format_func=lambda x: df_debts[df_debts['id'] == x]['creditor'].values[0])
+                    
+                        if selected_debt:
+                            debt_row = df_debts[df_debts['id'] == selected_debt].iloc[0]
+                    
+                            # Editable fields
+                            creditor = st.text_input("Creditor Name", debt_row['creditor'])
+                            balance = st.number_input("Outstanding Balance", value=float(debt_row['balance']), step=0.01)
+                            interest_rate = st.number_input("Interest Rate (%)", value=float(debt_row['interest_rate']), step=0.01)
+                            min_payment = st.number_input("Minimum Monthly Payment", value=float(debt_row['min_payment']), step=0.01)
+                            credit_limit = st.number_input("Credit Limit", value=float(debt_row['credit_limit']), step=0.01)
+                            due_date = st.date_input("Due Date", value=datetime.strptime(debt_row['due_date'], "%Y-%m-%d"))
+                    
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button("💾 Update Debt"):
+                                    conn = sqlite3.connect(DB_PATH)
+                                    conn.execute("""
+                                        UPDATE Debts SET creditor=?, balance=?, interest_rate=?, due_date=?, 
+                                        min_payment=?, credit_limit=? WHERE id=?
+                                    """, (creditor, balance, interest_rate, str(due_date), min_payment, credit_limit, selected_debt))
+                                    conn.commit()
+                                    conn.close()
+                                    st.success("✅ Debt updated successfully.")
+                                    st.experimental_rerun()
+                    
+                            with col2:
+                                if st.button("❌ Delete Debt"):
+                                    conn = sqlite3.connect(DB_PATH)
+                                    conn.execute("DELETE FROM Debts WHERE id=?", (selected_debt,))
+                                    conn.commit()
+                                    conn.close()
+                                    st.warning("🗑️ Debt deleted.")
+                                    st.experimental_rerun()
+
             
                     # --- 3. Select Payoff Method ---
                     st.markdown("### 🧠 Choose Payoff Method")
