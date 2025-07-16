@@ -127,10 +127,10 @@ def main():
     st.set_page_config("Finance App – Pro Edition", layout="wide")
     init_db()
 
-    menu = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
-                                           "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
+    menu = st.sidebar.radio("Navigation", ["➕ Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
+                                       "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
-    if menu == "Add Transaction":
+    if menu == "➕ Add Transaction":
         st.subheader("Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
@@ -141,6 +141,7 @@ def main():
             if st.form_submit_button("Submit"):
                 add_transaction(str(date), type_, category, amount, note)
                 st.success("Transaction added successfully!")
+
 
     elif menu == "🏋️ KPIs & Dashboard":
         df = get_transactions()
