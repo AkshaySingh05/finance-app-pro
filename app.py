@@ -1,4 +1,3 @@
-# Placeholder for final app
 import streamlit as st
 import sqlite3
 import pandas as pd
@@ -157,4 +156,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-.py
