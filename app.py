@@ -10,19 +10,6 @@ import matplotlib.pyplot as plt
 
 DB_PATH = "personal_finance.db"
 
-import sqlite3
-
-conn = sqlite3.connect("personal_finance.db")
-cursor = conn.cursor()
-
-# Convert all category types to lowercase
-cursor.execute("UPDATE Categories SET type = LOWER(TRIM(type))")
-
-conn.commit()
-conn.close()
-
-print("Category types normalized to lowercase.")
-
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -47,22 +34,12 @@ def init_db():
     conn.close()
 
 # Data functions (get, add)
-def get_categories(type_filter=None):
+def add_category(name, type_):
+    type_ = type_.strip().lower()  # Convert to lowercase
     conn = sqlite3.connect(DB_PATH)
-    query = "SELECT name FROM Categories"
-    params = ()
-    if type_filter:
-        query += " WHERE LOWER(TRIM(type)) = ?"
-        params = (type_filter.lower().strip(),)
-    df = pd.read_sql(query, conn, params=params)
+    conn.execute("INSERT INTO Categories (name, type) VALUES (?, ?)", (name, type_))
+    conn.commit()
     conn.close()
-
-    # Debug output
-    if df.empty:
-        print(f"[DEBUG] No categories found for type: '{type_filter}'")
-    return df['name'].tolist()
-
-
 
 def add_category(name, type_):
     conn = sqlite3.connect(DB_PATH)
