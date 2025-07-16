@@ -253,16 +253,24 @@ def main():
                     
                             col1, col2 = st.columns(2)
                             with col1:
-                                if st.button("💾 Update Debt"):
-                                    conn = sqlite3.connect(DB_PATH)
-                                    conn.execute("""
-                                        UPDATE Debts SET creditor=?, balance=?, interest_rate=?, due_date=?, 
-                                        min_payment=?, credit_limit=? WHERE id=?
-                                    """, (creditor, balance, interest_rate, str(due_date), min_payment, credit_limit, selected_debt))
-                                    conn.commit()
-                                    conn.close()
-                                    st.success("✅ Debt updated successfully.")
-                                    st.experimental_rerun()
+                                # New field to enter available balance and auto-calculate actual balance
+                                available_balance = st.number_input("Available Balance", value=float(debt_row['credit_limit'] - debt_row['balance']), step=0.01)
+                                computed_balance = credit_limit - available_balance
+                                
+                                if col1.button("💾 Update Debt"):
+                                    try:
+                                        conn = sqlite3.connect(DB_PATH)
+                                        conn.execute("""
+                                            UPDATE Debts SET creditor=?, balance=?, interest_rate=?, due_date=?, 
+                                            min_payment=?, credit_limit=? WHERE id=?
+                                        """, (creditor, computed_balance, interest_rate, str(due_date), min_payment, credit_limit, selected_debt))
+                                        conn.commit()
+                                        conn.close()
+                                        st.success("✅ Debt updated successfully.")
+                                        st.experimental_rerun()
+                                    except Exception as e:
+                                        st.error(f"❌ Failed to update debt: {e}")
+
                     
                             with col2:
                                 if st.button("❌ Delete Debt"):
