@@ -142,7 +142,7 @@ def main():
     menu = st.sidebar.radio("Navigation", ["➕ Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
                                        "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
-    if menu == "Add Transaction":
+    if menu == "➕ Add Transaction":
         st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
