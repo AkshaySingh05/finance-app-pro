@@ -183,6 +183,10 @@ def main():
                 else:
                     st.error("Please select a valid category.")
 
+        st.write("📋 All Categories with Types:")
+        df_debug = pd.read_sql("SELECT * FROM Categories", sqlite3.connect(DB_PATH))
+        st.dataframe(df_debug)
+
 
         # 🔍 View and Manage Transactions
         st.markdown("---")
