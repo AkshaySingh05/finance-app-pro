@@ -46,6 +46,7 @@ def get_categories(type_filter=None):
     return df['name'].tolist()
 
 
+
 def add_category(name, type_):
     conn = sqlite3.connect(DB_PATH)
     conn.execute("INSERT INTO Categories (name, type) VALUES (?, ?)", (name, type_))
@@ -166,7 +167,9 @@ def main():
         st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
-            type_ = st.selectbox("Type", ["income", "expense", "debt"])
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
+            filtered_categories = get_categories(type_filter=type_)
+
             
             # Fix the filtering to match database structure
             if type_ == "debt":
