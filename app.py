@@ -213,7 +213,9 @@ def main():
                 st.markdown("### ➕ Add a New Debt")
                 with st.form("add_debt_form"):
                     creditor = st.text_input("Creditor Name")
-                    balance = st.number_input("Outstanding Balance", min_value=0.0, step=0.01)
+                    credit_limit = st.number_input("Credit Limit", min_value=0.0, step=0.01)
+                    available_credit = st.number_input("Available Credit", min_value=0.0, step=0.01)
+                    balance = credit_limit - available_credit
                     interest_rate = st.number_input("Interest Rate (%)", min_value=0.0, step=0.01)
                     min_payment = st.number_input("Minimum Monthly Payment", min_value=0.0, step=0.01)
                     credit_limit = st.number_input("Credit Limit", min_value=0.0, step=0.01)
