@@ -159,7 +159,7 @@ def main():
             if st.form_submit_button("Submit"):
                 add_transaction(str(date), type_, category, amount, note)
                 st.success("Transaction added successfully!")
-                st.experimental_rerun()
+                st.stop()
     
         # 🔍 View and Manage Transactions
         st.markdown("---")
@@ -188,7 +188,7 @@ def main():
                 if col1.form_submit_button("Update"):
                     update_transaction(txn_id, new_date, new_type, new_category, new_amount, new_note)
                     st.success("✅ Transaction updated.")
-                    st.experimental_rerun()
+                    st.stop()
     
                 if col2.form_submit_button("Delete"):
                     delete_transaction(txn_id)
@@ -343,7 +343,7 @@ def main():
                                         conn.commit()
                                         conn.close()
                                         st.success("✅ Debt updated successfully.")
-                                        st.experimental_rerun()
+                                        st.stop()
                                     except Exception as e:
                                         st.error(f"❌ Failed to update debt: {e}")
 
@@ -355,7 +355,7 @@ def main():
                                     conn.commit()
                                     conn.close()
                                     st.warning("🗑️ Debt deleted.")
-                                    st.experimental_rerun()
+                                    st.stop()
 
             
                     # --- 3. Select Payoff Method ---
