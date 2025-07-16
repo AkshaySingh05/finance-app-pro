@@ -86,6 +86,17 @@ def delete_transaction(txn_id):
     conn.commit()
     conn.close()
 
+def update_transaction(txn_id, date, type_, category, amount, note):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute('''
+        UPDATE Transactions
+        SET date = ?, type = ?, category = ?, amount = ?, note = ?
+        WHERE id = ?
+    ''', (str(date), type_, category, amount, note, txn_id))
+    conn.commit()
+    conn.close()
+
+
 def add_debt(creditor, balance, rate, due, min_pay, credit_limit):
     conn = sqlite3.connect(DB_PATH)
     conn.execute("""
