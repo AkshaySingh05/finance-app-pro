@@ -37,11 +37,6 @@ def init_db():
 def get_categories(type_filter=None):
     conn = sqlite3.connect(DB_PATH)
     query = "SELECT name FROM Categories"
-    if type_filter:
-        # Fix 'Debt Payment' → 'Debt' mapping
-        if type_filter == "Debt Payment":
-            type_filter = "Debt"
-        query += f" WHERE type='{type_filter}'"
     df = pd.read_sql(query, conn)
     conn.close()
     return df['name'].tolist()
