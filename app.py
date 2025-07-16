@@ -176,7 +176,7 @@ def main():
             st.dataframe(df)
 
         # Debt Simulator Tab
-    elif selection == "📆 Debt Simulator":
+    elif menu == "📆 Debt Simulator":
         st.subheader("📆 Debt Payoff Simulator")
     
         df_debts = get_debts()
