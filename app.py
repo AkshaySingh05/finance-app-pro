@@ -208,24 +208,40 @@ def main():
 
     elif menu == "📆 Debt Simulator":
         st.subheader("📆 Debt Payoff Simulator")
-        df_debts = get_debts()
     
-        if df_debts.empty:
-            st.info("⚠ No debts found. Please add debt entries in the 'Budgets' or 'Add Transaction' tab.")
-        else:
-            # Add form for selecting payoff method
-            with st.form("payoff_form"):
-                method = st.selectbox("Choose a payoff method:", ["Snowball", "Avalanche"])
-                submitted = st.form_submit_button("Run Simulation")
+        # --- 1. Debt Entry Form ---
+        st.markdown("### ➕ Add a New Debt")
+        with st.form("add_debt_form"):
+            creditor = st.text_input("Creditor Name")
+            balance = st.number_input("Outstanding Balance", min_value=0.0, step=0.01)
+            interest_rate = st.number_input("Interest Rate (%)", min_value=0.0, step=0.01)
+            min_payment = st.number_input("Minimum Monthly Payment", min_value=0.0, step=0.01)
+            due_date = st.date_input("Due Date (optional)")
+            submitted = st.form_submit_button("Save Debt")
     
             if submitted:
-                # Now run simulation only after form is submitted
+                add_debt(creditor, balance, interest_rate, min_payment, str(due_date))
+                st.success("✅ Debt saved successfully.")
+    
+        # --- 2. View Existing Debts ---
+        df_debts = get_debts()
+        if df_debts.empty:
+            st.warning("⚠ No debts found. Please add at least one entry to simulate payoff.")
+        else:
+            st.markdown("### 📄 Current Debts")
+            st.dataframe(df_debts)
+    
+            # --- 3. Select Payoff Method ---
+            st.markdown("### 🧠 Choose Payoff Method")
+            method = st.selectbox("Select method:", ["Snowball", "Avalanche"])
+            if st.button("Run Simulation"):
                 payoff_df = debt_payoff_simulator(df_debts.copy(), method.lower())
                 if not payoff_df.empty:
                     st.success("✅ Simulation complete. Here's your estimated payoff timeline:")
                     st.dataframe(payoff_df)
                 else:
-                    st.warning("Simulation did not return any data. Check your debt details.")
+                    st.warning("⚠ Simulation did not return any results.")
+
 
 
 
