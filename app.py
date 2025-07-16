@@ -36,11 +36,12 @@ def init_db():
 # Data functions (get, add)
 def get_categories(type_filter=None):
     conn = sqlite3.connect(DB_PATH)
-    query = "SELECT name FROM Categories"
-    df = pd.read_sql(query, conn)
+    if type_filter:
+        df = pd.read_sql("SELECT name FROM Categories WHERE type = ?", conn, params=(type_filter,))
+    else:
+        df = pd.read_sql("SELECT name FROM Categories", conn)
     conn.close()
     return df['name'].tolist()
-
 
 def add_category(name, type_):
     conn = sqlite3.connect(DB_PATH)
