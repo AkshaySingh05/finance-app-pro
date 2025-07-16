@@ -163,7 +163,7 @@ def main():
         st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
-            type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
             
             # Filter categories by selected type
             filtered_categories = get_categories(type_filter=type_)
