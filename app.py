@@ -97,7 +97,7 @@ def main():
     st.set_page_config("Finance App – Pro Edition", layout="wide")
     init_db()
 
-    menu = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
+    selection = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
                                            "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
     if menu == "Add Transaction":
