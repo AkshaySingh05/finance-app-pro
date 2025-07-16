@@ -220,7 +220,7 @@ def main():
     
             with st.form("edit_transaction_form"):
                 new_date = st.date_input("Edit Date", value=pd.to_datetime(txn_row['date']))
-                new_type = st.selectbox("Edit Type", ["Income", "Expense", "debt"], index=["Income", "Expense", "debt"].index(txn_row['type']))
+                new_type = st.selectbox("Edit Type", ["income", "expense", "debt"], index=["income", "expense", "debt"].index(txn_row['type']))
                 new_category = st.selectbox("Edit Category", get_categories(), index=get_categories().index(txn_row['category']))
                 new_amount = st.number_input("Edit Amount", value=txn_row['amount'], step=0.01)
                 new_note = st.text_input("Edit Note", value=txn_row['note'])
@@ -240,8 +240,8 @@ def main():
         df = get_transactions()
         df['date'] = pd.to_datetime(df['date'])
         debts = get_debts()
-        income = df[df['type'] == 'Income']['amount'].sum()
-        expenses = df[df['type'] == 'Expense']['amount'].sum()
+        income = df[df['type'] == 'income']['amount'].sum()
+        expenses = df[df['type'] == 'expense']['amount'].sum()
         debt_payments = df[df['type'] == 'debt']['amount'].sum()
         savings = income + expenses + debt_payments
         savings_rate = (savings / income * 100) if income > 0 else 0
@@ -258,17 +258,17 @@ def main():
 
         st.subheader("📊 Key Financial Indicators")
         st.metric("Savings Rate (%)", f"{savings_rate:.1f}%")
-        st.metric("Expense Ratio (%)", f"{expense_ratio:.1f}%")
+        st.metric("expense Ratio (%)", f"{expense_ratio:.1f}%")
         st.metric("Net Cash Flow", f"{income + expenses + debt_payments:.2f}")
         st.metric("Avg Credit Utilization (%)", f"{credit_util:.1f}%")
         st.metric("Avg Debt Reduction (%)", f"{debt_reduction:.1f}%")
         st.metric("Emergency Fund Coverage (months)", f"{emergency_months:.1f}%")
 
     elif menu == "📈 Forecasting":
-        st.subheader("Expense Forecast")
+        st.subheader("expense Forecast")
         df = get_transactions()
         df['date'] = pd.to_datetime(df['date'])
-        df = df[df['type'] == 'Expense']
+        df = df[df['type'] == 'expense']
         df = df.groupby(df['date'].dt.to_period("M")).sum().reset_index()
         df['date'] = df['date'].astype(str)
         df['month_index'] = range(len(df))
@@ -390,7 +390,7 @@ def main():
     elif menu == "💰 Budgets":
         st.subheader("Monthly Budgets")
         with st.form("budget_form"):
-            cat = st.selectbox("Category", get_categories("Expense"))
+            cat = st.selectbox("Category", get_categories("expense"))
             month = st.text_input("Month (YYYY-MM)")
             amount = st.number_input("Budget Amount", step=100.0)
             if st.form_submit_button("Set Budget"):
@@ -404,7 +404,7 @@ def main():
         st.subheader("Manage Categories")
         with st.form("cat_form"):
             name = st.text_input("Category Name")
-            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
+            type_ = st.selectbox("Type", ["income", "expense", "Debt"])
             if st.form_submit_button("Add Category"):
                 add_category(name, type_)
                 st.success("Category added.")
