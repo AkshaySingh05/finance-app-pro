@@ -176,9 +176,6 @@ def main():
             
             filtered_categories = get_categories(type_filter=cat_type)
 
-            
-            # Filter categories by selected type
-            filtered_categories = get_categories(type_filter=type_)
             if not filtered_categories:
                 st.warning("⚠ No categories found for this type. Please add them under 'Manage Categories'.")
                 category = ""
