@@ -10,6 +10,19 @@ import matplotlib.pyplot as plt
 
 DB_PATH = "personal_finance.db"
 
+import sqlite3
+
+conn = sqlite3.connect("personal_finance.db")
+cursor = conn.cursor()
+
+# Convert all category types to lowercase
+cursor.execute("UPDATE Categories SET type = LOWER(TRIM(type))")
+
+conn.commit()
+conn.close()
+
+print("Category types normalized to lowercase.")
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
