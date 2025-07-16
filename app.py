@@ -57,8 +57,8 @@ def add_transaction(date, type_, category, amount, note):
     conn.execute('''INSERT INTO Transactions (date, type, category, amount, note)
                     VALUES (?, ?, ?, ?, ?)''', (date, type_, category, amount, note))
     
-    # Update debt balance if this is a debt payment
-    if type_ == "Debt Payment":
+    # Update debt balance if this is a Debt
+    if type_ == "Debt":
         cursor = conn.cursor()
         cursor.execute("SELECT id, balance FROM Debts WHERE creditor = ?", (category,))
         result = cursor.fetchone()
@@ -166,10 +166,10 @@ def main():
         st.subheader("➕ Add New Transaction")
         with st.form("txn_form"):
             date = st.date_input("Date")
-            type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
+            type_ = st.selectbox("Type", ["Income", "Expense", "Debt"])
             
             # Fix the filtering to match database structure
-            if type_ == "Debt Payment":
+            if type_ == "Debt":
                 cat_type = "Debt"
             else:
                 cat_type = type_
@@ -220,7 +220,7 @@ def main():
     
             with st.form("edit_transaction_form"):
                 new_date = st.date_input("Edit Date", value=pd.to_datetime(txn_row['date']))
-                new_type = st.selectbox("Edit Type", ["Income", "Expense", "Debt Payment"], index=["Income", "Expense", "Debt Payment"].index(txn_row['type']))
+                new_type = st.selectbox("Edit Type", ["Income", "Expense", "Debt"], index=["Income", "Expense", "Debt"].index(txn_row['type']))
                 new_category = st.selectbox("Edit Category", get_categories(), index=get_categories().index(txn_row['category']))
                 new_amount = st.number_input("Edit Amount", value=txn_row['amount'], step=0.01)
                 new_note = st.text_input("Edit Note", value=txn_row['note'])
@@ -242,7 +242,7 @@ def main():
         debts = get_debts()
         income = df[df['type'] == 'Income']['amount'].sum()
         expenses = df[df['type'] == 'Expense']['amount'].sum()
-        debt_payments = df[df['type'] == 'Debt Payment']['amount'].sum()
+        debt_payments = df[df['type'] == 'Debt']['amount'].sum()
         savings = income + expenses + debt_payments
         savings_rate = (savings / income * 100) if income > 0 else 0
         expense_ratio = (-expenses / income * 100) if income > 0 else 0
