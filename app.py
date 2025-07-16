@@ -159,7 +159,7 @@ def main():
             if st.form_submit_button("Submit"):
                 add_transaction(str(date), type_, category, amount, note)
                 st.success("Transaction added successfully!")
-                st.rerun()
+                st.experimental_rerun()
     
         # 🔍 View and Manage Transactions
         st.markdown("---")
