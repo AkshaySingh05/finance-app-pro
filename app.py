@@ -211,19 +211,21 @@ def main():
         df_debts = get_debts()
     
         if df_debts.empty:
-            st.info("No debts found. Please add debt entries first in the Budgets tab.")
+            st.info("⚠ No debts found. Please add debt entries in the 'Budgets' or 'Add Transaction' tab.")
         else:
-            with st.form("debt_sim_form"):
-                method = st.selectbox("Payoff Method", ["Snowball", "Avalanche"])
-                submit_sim = st.form_submit_button("Run Simulation")
-            
-            if submit_sim:
-                payoff_df = debt_payoff_simulator(df_debts, method.lower())
+            # Add form for selecting payoff method
+            with st.form("payoff_form"):
+                method = st.selectbox("Choose a payoff method:", ["Snowball", "Avalanche"])
+                submitted = st.form_submit_button("Run Simulation")
+    
+            if submitted:
+                # Now run simulation only after form is submitted
+                payoff_df = debt_payoff_simulator(df_debts.copy(), method.lower())
                 if not payoff_df.empty:
-                    st.write("📊 Payoff Timeline:")
+                    st.success("✅ Simulation complete. Here's your estimated payoff timeline:")
                     st.dataframe(payoff_df)
                 else:
-                    st.warning("Simulation failed or returned no data.")
+                    st.warning("Simulation did not return any data. Check your debt details.")
 
 
 
