@@ -97,7 +97,7 @@ def main():
     st.set_page_config("Finance App – Pro Edition", layout="wide")
     init_db()
 
-    selection = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
+    menu = st.sidebar.radio("Navigation", ["Add Transaction", "🏋️ KPIs & Dashboard", "📈 Forecasting",
                                            "🌟 Goals", "📆 Debt Simulator", "💰 Budgets", "🌐 Manage Categories"])
 
     if menu == "Add Transaction":
@@ -176,7 +176,7 @@ def main():
             st.dataframe(df)
 
         # Debt Simulator Tab
-    elif selection == "Debt Simulator":
+    elif menu == "Debt Simulator":
         st.header("🧮 Debt Payoff Simulator")
     
         debts = get_debts()
