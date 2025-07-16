@@ -153,6 +153,46 @@ def main():
             if st.form_submit_button("Submit"):
                 add_transaction(str(date), type_, category, amount, note)
                 st.success("Transaction added successfully!")
+                # View, Edit, or Delete Transactions
+                st.markdown("---")
+                st.subheader("📋 Recent Transactions")
+                df_txns = get_transactions()
+                if df_txns.empty:
+                    st.info("No transactions available.")
+                else:
+                    df_txns['date'] = pd.to_datetime(df_txns['date']).dt.date
+                    st.dataframe(df_txns)
+            
+                    selected_id = st.selectbox("Select Transaction ID to Edit/Delete", df_txns['id'].tolist())
+                    selected_row = df_txns[df_txns['id'] == selected_id].iloc[0]
+            
+                    action = st.radio("Action", ["Edit", "Delete"])
+            
+                    if action == "Edit":
+                        with st.form("edit_form"):
+                            new_date = st.date_input("Date", selected_row['date'])
+                            new_type = st.selectbox("Type", ["Income", "Expense", "Debt Payment"], index=["Income", "Expense", "Debt Payment"].index(selected_row['type']))
+                            new_category = st.selectbox("Category", get_categories(), index=get_categories().index(selected_row['category']) if selected_row['category'] in get_categories() else 0)
+                            new_amount = st.number_input("Amount", value=float(selected_row['amount']), step=0.01)
+                            new_note = st.text_input("Note", value=selected_row['note'])
+            
+                            if st.form_submit_button("Update Transaction"):
+                                conn = sqlite3.connect(DB_PATH)
+                                conn.execute('''UPDATE Transactions SET date=?, type=?, category=?, amount=?, note=? WHERE id=?''',
+                                             (str(new_date), new_type, new_category, new_amount, new_note, selected_id))
+                                conn.commit()
+                                conn.close()
+                                st.success("Transaction updated successfully.")
+                                st.experimental_rerun()
+            
+                    elif action == "Delete":
+                        if st.button("Delete Transaction"):
+                            conn = sqlite3.connect(DB_PATH)
+                            conn.execute("DELETE FROM Transactions WHERE id = ?", (selected_id,))
+                            conn.commit()
+                            conn.close()
+                            st.warning("Transaction deleted.")
+                            st.experimental_rerun()
 
 
     elif menu == "🏋️ KPIs & Dashboard":
