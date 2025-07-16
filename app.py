@@ -39,16 +39,12 @@ def get_categories(type_filter=None):
     query = "SELECT name FROM Categories"
     params = ()
     if type_filter:
-        query += " WHERE LOWER(TRIM(type)) = ?"
-        params = (type_filter.lower().strip(),)
+        query += " WHERE LOWER(TRIM(type)) = LOWER(TRIM(?))"
+        params = (type_filter,)
     df = pd.read_sql(query, conn, params=params)
     conn.close()
     return df['name'].tolist()
-
-
-
-def add_category(name, type_):
-    conn = sqlite3.connect(DB_PATH)
+ATH)
     conn.execute("INSERT INTO Categories (name, type) VALUES (?, ?)", (name, type_))
     conn.commit()
     conn.close()
