@@ -164,12 +164,25 @@ def main():
         with st.form("txn_form"):
             date = st.date_input("Date")
             type_ = st.selectbox("Type", ["Income", "Expense", "Debt Payment"])
-            category = st.selectbox("Category", get_categories())
+            
+            # Filter categories by selected type
+            filtered_categories = get_categories(type_filter=type_)
+            if not filtered_categories:
+                st.warning("⚠ No categories found for this type. Please add them under 'Manage Categories'.")
+                category = ""
+            else:
+                category = st.selectbox("Category", filtered_categories)
+            
             amount = st.number_input("Amount", step=0.01)
             note = st.text_input("Note")
+            
             if st.form_submit_button("Submit"):
-                add_transaction(str(date), type_, category, amount, note)
-                st.success("Transaction added successfully!")
+                if category:
+                    add_transaction(str(date), type_, category, amount, note)
+                    st.success("Transaction added successfully!")
+                else:
+                    st.error("Please select a valid category.")
+
 
         # 🔍 View and Manage Transactions
         st.markdown("---")
